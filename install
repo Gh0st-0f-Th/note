@@ -1,0 +1,20 @@
+#!/bin/bash
+
+# Create safe .note directory in home
+NOTE_DIR="$HOME/.note"
+mkdir -p "$NOTE_DIR"
+
+# Copy files (script + log) to ~/.note/
+cp note "$NOTE_DIR/"
+cp -- -note "$NOTE_DIR/" 2>/dev/null || touch "$NOTE_DIR/-note"
+
+# Set secure permissions
+chmod 700 "$NOTE_DIR/note"     # Only you can execute/edit
+chmod 600 "$NOTE_DIR/-note"    # Only you can read/write logs
+
+# Add alias to shell config (supports bash/zsh)
+SHELL_CONFIG="$HOME/.bashrc"
+[[ -f "$HOME/.zshrc" ]] && SHELL_CONFIG="$HOME/.zshrc"
+
+echo "alias note='bash $NOTE_DIR/note'" >> "$SHELL_CONFIG"
+echo "✅ Installed! Run 'source $SHELL_CONFIG' or restart your terminal."
