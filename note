@@ -11,7 +11,7 @@ show_help() {
   echo "  note -ln               → View notes with line numbers"
   echo "  note -ad               → Delete ALL notes"
   echo "  note -Nd (e.g., -10d)  → Delete line N"
-  echo "  note -s 'keyword'      → Search notes"
+  echo "  note -s 'keyword'      → Search notes (with line numbers)"
   echo "  note -h                → Show help"
 }
 
@@ -25,7 +25,12 @@ case "$1" in
     [[ -s "$NOTE_FILE" ]] && sed -i "${line_num}d" "$NOTE_FILE" && echo "Deleted line $line_num." || echo "No notes to delete!"
     ;;
   -s)
-    [[ -z "$2" ]] && echo "Error: Search term required." || grep -i "$2" "$NOTE_FILE" || echo "No matches found."
+    if [[ -z "$2" ]]; then
+      echo "Error: Search term required."
+    else
+      echo "Search results (Line:Text):"
+      grep -ni "$2" "$NOTE_FILE" || echo "No matches found."
+    fi
     ;;
   *)
     echo "$(date +'%Y-%m-%d %H:%M:%S'): $1" >> "$NOTE_FILE"
