@@ -1,0 +1,58 @@
+#!/bin/bash
+
+NOTE_FILE="$PREFIX/etc/.note-log"
+mkdir -p "$(dirname "$NOTE_FILE")"
+
+show_help() {
+    echo "Usage:"
+    echo "  note 'your note'       → Save a note"
+    echo "  note -v                → View all notes"
+    echo "  note -ln               → View notes with line numbers"
+    echo "  note -ad               → Delete ALL notes"
+    echo "  note -Nd (e.g., -10d)  → Delete line N"
+    echo "  note -s 'keyword'      → Search notes"
+    echo "  note -h                → Show help"
+}
+
+init_note_file() {
+    [[ ! -f "$NOTE_FILE" ]] && touch "$NOTE_FILE"
+}
+
+# Check if argument is a valid flag
+is_valid_flag() {
+    case "$1" in
+        -v|-ln|-ad|-h|-s|-[0-9]*d) return 0 ;;
+        *) return 1 ;;
+    esac
+}
+
+# Main logic
+if [[ "$1" == "" ]]; then
+    show_help
+elif is_valid_flag "$1"; then
+    # Handle valid flags
+    case "$1" in
+        -v) init_note_file; [[ -s "$NOTE_FILE" ]] && cat "$NOTE_FILE" || echo "No notes yet!" ;;
+        -ln) init_note_file; [[ -s "$NOTE_FILE" ]] && nl -ba "$NOTE_FILE" || echo "No notes yet!" ;;
+        -ad) init_note_file; > "$NOTE_FILE" && echo "All notes deleted!" ;;
+        -[0-9]*d) 
+            init_note_file
+            line_num="${1//[!0-9]/}"
+            [[ -s "$NOTE_FILE" ]] && sed -i "${line_num}d" "$NOTE_FILE" && echo "Deleted line $line_num." || echo "No notes to delete!"
+            ;;
+        -s) 
+            init_note_file
+            [[ -z "$2" ]] && echo "Error: Search term required." || grep -i "$2" "$NOTE_FILE" || echo "No matches found."
+            ;;
+        -h) show_help ;;
+    esac
+elif [[ "$1" == -* ]]; then
+    # Reject invalid flags
+    echo "Error: Invalid flag '$1'"
+    show_help
+else
+    # Save regular notes
+    init_note_file
+    echo "$(date +'%Y-%m-%d %H:%M:%S'): $1" >> "$NOTE_FILE"
+    echo "Note saved!"
+fi
