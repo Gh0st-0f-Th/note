@@ -1,8 +1,9 @@
 #!/bin/bash
 
-NOTE_FILE="$HOME/.note/-note"
-mkdir -p "$(dirname "$NOTE_FILE")"
-touch "$NOTE_FILE"
+NOTE_DIR="$HOME/.note"
+NOTE_FILE="$NOTE_DIR/-note"
+SHELL_CONFIG="$HOME/.bashrc"
+[ -f "$HOME/.zshrc" ] && SHELL_CONFIG="$HOME/.zshrc"
 
 show_help() {
   echo "Usage:"
@@ -12,7 +13,26 @@ show_help() {
   echo "  note -ad               → Delete ALL notes"
   echo "  note -Nd (e.g., -10d)  → Delete line N"
   echo "  note -s 'keyword'      → Search notes (with line numbers)"
+  echo "  note -un               → COMPLETELY uninstall note tool"
   echo "  note -h                → Show help"
+}
+
+uninstall() {
+  # 1. Remove all note files
+  rm -rf "$NOTE_DIR" 2>/dev/null
+  
+  # 2. Remove alias from all shell configs
+  sed -i '/alias note=/d' "$HOME/.bashrc" 2>/dev/null
+  sed -i '/alias note=/d' "$HOME/.zshrc" 2>/dev/null
+  
+  # 3. Optional: Suggest Git repo removal
+  if [ -d ~/note/.git ]; then
+    echo "Note: To remove source files, run: rm -rf ~/note"
+    echo "      (This preserves your customizations if cloned elsewhere)"
+  fi
+  
+  echo "✅ Note tool completely uninstalled."
+  echo "   Restart your terminal to clear any active aliases."
 }
 
 case "$1" in
@@ -32,7 +52,9 @@ case "$1" in
       grep -ni "$2" "$NOTE_FILE" || echo "No matches found."
     fi
     ;;
+  -un)   uninstall ;;
   *)
+    mkdir -p "$NOTE_DIR"
     echo "$(date +'%Y-%m-%d %H:%M:%S'): $1" >> "$NOTE_FILE"
     echo "Note saved!"
     ;;
