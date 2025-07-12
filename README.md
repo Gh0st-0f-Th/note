@@ -37,7 +37,7 @@ Getting Started
 
 Once installed, run:
 
-   note -h
+$ note -h
 
 to see the help menu with all available commands.
 
