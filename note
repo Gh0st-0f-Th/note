@@ -15,24 +15,23 @@ show_help() {
   echo "  note -s 'keyword'      → Search notes (with line numbers)"
   echo "  note -un               → COMPLETELY uninstall note tool"
   echo "  note -h                → Show help"
+  echo ""
+  echo "Special cases:"
+  echo "  For notes with ', \$, #, etc: note \$'your \'note\' with \#symbols'"
 }
 
 uninstall() {
-  # 1. Remove all note files
   rm -rf "$NOTE_DIR" 2>/dev/null
-  
-  # 2. Remove alias from all shell configs
   sed -i '/alias note=/d' "$HOME/.bashrc" 2>/dev/null
   sed -i '/alias note=/d' "$HOME/.zshrc" 2>/dev/null
-  
-  # 3. Optional: Suggest Git repo removal
-  if [ -d ~/note/.git ]; then
-    echo "Note: To remove source files, run: rm -rf ~/note"
-    echo "      (This preserves your customizations if cloned elsewhere)"
-  fi
-  
   echo "✅ Note tool completely uninstalled."
-  echo "   Restart your terminal to clear any active aliases."
+  [[ -d ~/note/.git ]] && echo "ℹ️  Remove repo: rm -rf ~/note"
+}
+
+save_note() {
+  mkdir -p "$NOTE_DIR"
+  printf "%s: %s\n" "$(date +'%Y-%m-%d %H:%M:%S')" "$1" >> "$NOTE_FILE"
+  echo "Note saved!"
 }
 
 case "$1" in
@@ -45,17 +44,15 @@ case "$1" in
     [[ -s "$NOTE_FILE" ]] && sed -i "${line_num}d" "$NOTE_FILE" && echo "Deleted line $line_num." || echo "No notes to delete!"
     ;;
   -s)
-    if [[ -z "$2" ]]; then
-      echo "Error: Search term required."
-    else
-      echo "Search results (Line:Text):"
-      grep -ni "$2" "$NOTE_FILE" || echo "No matches found."
-    fi
+    [[ -z "$2" ]] && echo "Error: Search term required." || grep -ni "$2" "$NOTE_FILE" || echo "No matches found."
     ;;
   -un)   uninstall ;;
   *)
-    mkdir -p "$NOTE_DIR"
-    echo "$(date +'%Y-%m-%d %H:%M:%S'): $1" >> "$NOTE_FILE"
-    echo "Note saved!"
+    # Handle multi-line notes and special chars
+    if [[ "$*" == *$'\n'* ]]; then
+      save_note "$(echo "$@" | sed ':a;N;$!ba;s/\n/\\n/g')"
+    else
+      save_note "$*"
+    fi
     ;;
 esac
