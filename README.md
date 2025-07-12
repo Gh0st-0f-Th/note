@@ -45,13 +45,13 @@ to see the help menu with all available commands.
 
 Example Usage
 
-note "Remember to read man pages"
+$ note "Remember to read man pages"
 
-note -v
+$ note -v
 
-note -s 'man'
+$ note -s 'man'
 
-note -3d
+$ note -3d
 
 ---
 
