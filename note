@@ -30,6 +30,7 @@ uninstall() {
 
 save_note() {
   mkdir -p "$NOTE_DIR"
+  echo >> "NOTE_FILE"
   printf "%s: %s\n" "$(date +'%Y-%m-%d %H:%M:%S')" "$1" >> "$NOTE_FILE"
   echo "Note saved!"
 }
